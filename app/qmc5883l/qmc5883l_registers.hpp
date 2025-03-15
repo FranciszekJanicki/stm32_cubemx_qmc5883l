@@ -8,18 +8,15 @@
 namespace QMC5883L {
 
     struct XOUT {
-        std::uint8_t xout_lsb : 8;
-        std::uint8_t xout_msb : 8;
+        std::uint16_t xout : 16;
     } PACKED;
 
     struct YOUT {
-        std::uint8_t yout_lsb : 8;
-        std::uint8_t yout_msb : 8;
+        std::uint16_t yout : 16;
     } PACKED;
 
     struct ZOUT {
-        std::uint8_t zout_lsb : 8;
-        std::uint8_t zout_msb : 8;
+        std::uint16_t zout : 16;
     } PACKED;
 
     struct OUT {
@@ -29,8 +26,7 @@ namespace QMC5883L {
     } PACKED;
 
     struct TOUT {
-        std::uint8_t tout_lsb : 8;
-        std::uint8_t tout_msb : 8;
+        std::uint16_t tout : 16;
     } PACKED;
 
     struct CONTROL_1 {
