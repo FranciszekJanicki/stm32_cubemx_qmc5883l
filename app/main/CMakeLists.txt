@@ -1,7 +1,7 @@
 add_executable(app)
 
 target_sources(app PRIVATE 
-    "main.cpp"
+    "main.c"
 )
 
 target_include_directories(app PRIVATE 
@@ -13,7 +13,7 @@ target_link_libraries(app PRIVATE
 )
 
 target_compile_options(app PUBLIC
-    -std=c++23
+    -std=c23
     -Wall
     -Wextra
     -Wconversion
