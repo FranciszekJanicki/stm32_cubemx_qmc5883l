@@ -1,21 +1,17 @@
 add_library(qmc5883l STATIC)
 
 target_sources(qmc5883l PRIVATE 
-    "qmc5883l.cpp"
+    "qmc5883l.c"
 )
 
-target_include_directories(qmc5883l PUBLIC 
-    "."
-    ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(qmc5883l PUBLIC
 )
 
 target_link_libraries(qmc5883l PRIVATE
-    utility
-    stm32cubemx
 )
 
 target_compile_options(qmc5883l PUBLIC
-    -std=c++23
+    -std=c23
     -Wall
     -Wextra
     -Wconversion
@@ -33,5 +29,4 @@ target_compile_options(qmc5883l PUBLIC
     -Wdouble-promotion
     -Wimplicit-fallthrough
     -Wcast-align
-    -fconcepts
 )
