@@ -333,6 +333,10 @@ qmc5883l_err_t qmc5883l_set_control_2_reg(qmc5883l_t const* qmc5883l, qmc5883l_c
 
     qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CONTROL_2, data, sizeof(data));
 
+    data[0] &= ~(0x01U << 7U);
+    data[0] &= ~(0x01U << 6U);
+    data[0] &= ~(0x01U << 0U);
+
     data[0] |= (reg->soft_rst & 0x01U) << 7U;
     data[0] |= (reg->rol_pnt & 0x01U) << 6U;
     data[0] |= (reg->int_enb & 0x01U) << 0U;
