@@ -25,32 +25,43 @@ static qmc5883l_err_t qmc5883l_bus_deinit(qmc5883l_t const* qmc5883l)
     return QMC5883L_ERR_NULL;
 }
 
-static qmc5883l_err_t
-qmc5883l_bus_write(qmc5883l_t const* qmc5883l, uint8_t write_address, uint8_t const* write_data, size_t write_size)
+static qmc5883l_err_t qmc5883l_bus_write(qmc5883l_t const* qmc5883l,
+                                         uint8_t write_address,
+                                         uint8_t const* write_data,
+                                         size_t write_size)
 {
     assert(qmc5883l && write_data);
 
     if (qmc5883l->interface.bus_write) {
-        return qmc5883l->interface.bus_write(qmc5883l->interface.bus_user, write_address, write_data, write_size);
+        return qmc5883l->interface.bus_write(qmc5883l->interface.bus_user,
+                                             write_address,
+                                             write_data,
+                                             write_size);
     }
 
     return QMC5883L_ERR_NULL;
 }
 
-static qmc5883l_err_t
-qmc5883l_bus_read(qmc5883l_t const* qmc5883l, uint8_t read_address, uint8_t* read_data, size_t read_size)
+static qmc5883l_err_t qmc5883l_bus_read(qmc5883l_t const* qmc5883l,
+                                        uint8_t read_address,
+                                        uint8_t* read_data,
+                                        size_t read_size)
 {
     assert(qmc5883l && read_data);
 
     if (qmc5883l->interface.bus_read) {
-        return qmc5883l->interface.bus_read(qmc5883l->interface.bus_user, read_address, read_data, read_size);
+        return qmc5883l->interface.bus_read(qmc5883l->interface.bus_user,
+                                            read_address,
+                                            read_data,
+                                            read_size);
     }
 
     return QMC5883L_ERR_NULL;
 }
 
-qmc5883l_err_t
-qmc5883l_initialize(qmc5883l_t* qmc5883l, qmc5883l_config_t const* config, qmc5883l_interface_t const* interface)
+qmc5883l_err_t qmc5883l_initialize(qmc5883l_t* qmc5883l,
+                                   qmc5883l_config_t const* config,
+                                   qmc5883l_interface_t const* interface)
 {
     assert(qmc5883l && config && interface);
 
@@ -147,7 +158,7 @@ qmc5883l_err_t qmc5883l_get_mag_data_x_raw(qmc5883l_t const* qmc5883l, int16_t* 
 
     qmc5883l_err_t err = qmc5883l_get_xout_reg(qmc5883l, &reg);
 
-    *raw = (reg.xout_15to8 << 8) | (reg.xout_7to0 << 0);
+    *raw = reg.xout;
 
     return err;
 }
@@ -160,7 +171,7 @@ qmc5883l_err_t qmc5883l_get_mag_data_y_raw(qmc5883l_t const* qmc5883l, int16_t* 
 
     qmc5883l_err_t err = qmc5883l_get_yout_reg(qmc5883l, &reg);
 
-    *raw = (reg.yout_15to8 << 8) | (reg.yout_7to0 << 0);
+    *raw = reg.yout;
 
     return err;
 }
@@ -173,7 +184,7 @@ qmc5883l_err_t qmc5883l_get_mag_data_z_raw(qmc5883l_t const* qmc5883l, int16_t* 
 
     qmc5883l_err_t err = qmc5883l_get_zout_reg(qmc5883l, &reg);
 
-    *raw = (reg.zout_15to8 << 8) | (reg.zout_7to0 << 0);
+    *raw = reg.zout;
 
     return err;
 }
@@ -186,9 +197,9 @@ qmc5883l_err_t qmc5883l_get_mag_data_raw(qmc5883l_t const* qmc5883l, vec3_int16_
 
     qmc5883l_err_t err = qmc5883l_get_out_reg(qmc5883l, &reg);
 
-    raw->x = (reg.xout_15to8 << 8) | (reg.xout_7to0 << 0);
-    raw->y = (reg.yout_15to8 << 8) | (reg.yout_7to0 << 0);
-    raw->z = (reg.zout_15to8 << 8) | (reg.zout_7to0 << 0);
+    raw->x = reg.xout;
+    raw->y = reg.yout;
+    raw->z = reg.zout;
 
     return err;
 }
@@ -201,7 +212,7 @@ qmc5883l_err_t qmc5883l_get_temp_data_raw(qmc5883l_t const* qmc5883l, int16_t* r
 
     qmc5883l_err_t err = qmc5883l_get_tout_reg(qmc5883l, &reg);
 
-    *raw = (reg.tout_15to8 << 8) | (reg.tout_7to0 << 0);
+    *raw = reg.tout;
 
     return err;
 }
@@ -212,10 +223,10 @@ qmc5883l_err_t qmc5883l_get_xout_reg(qmc5883l_t const* qmc5883l, qmc5883l_xout_r
 
     uint8_t data[2] = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_XOUT_LSB, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_XOUT_LSB, data, sizeof(data));
 
-    reg->xout_7to0 = (int8_t)(data[0] >> 0) & 0xFF;
-    reg->xout_15to8 = (int8_t)(data[1] >> 0) & 0xFF;
+    reg->xout = (int16_t)((data[0] & 0xFF) | ((data[1] & 0xFF) << 8));
 
     return err;
 }
@@ -226,10 +237,10 @@ qmc5883l_err_t qmc5883l_get_yout_reg(qmc5883l_t const* qmc5883l, qmc5883l_yout_r
 
     uint8_t data[2] = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_YOUT_LSB, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_YOUT_LSB, data, sizeof(data));
 
-    reg->yout_7to0 = (int8_t)(data[0] >> 0) & 0xFF;
-    reg->yout_15to8 = (int8_t)(data[1] >> 0) & 0xFF;
+    reg->yout = (int16_t)((data[0] & 0xFF) | ((data[1] & 0xFF) << 8));
 
     return err;
 }
@@ -240,10 +251,10 @@ qmc5883l_err_t qmc5883l_get_zout_reg(qmc5883l_t const* qmc5883l, qmc5883l_zout_r
 
     uint8_t data[2] = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_ZOUT_LSB, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_ZOUT_LSB, data, sizeof(data));
 
-    reg->zout_7to0 = (int8_t)(data[0] >> 0) & 0xFF;
-    reg->zout_15to8 = (int8_t)(data[1] >> 0) & 0xFF;
+    reg->zout = (int16_t)((data[0] & 0xFF) | ((data[1] & 0xFF) << 8));
 
     return err;
 }
@@ -254,14 +265,12 @@ qmc5883l_err_t qmc5883l_get_out_reg(qmc5883l_t const* qmc5883l, qmc5883l_out_reg
 
     uint8_t data[6] = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_XOUT_LSB, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_XOUT_LSB, data, sizeof(data));
 
-    reg->xout_7to0 = (int8_t)(data[0] >> 0) & 0xFF;
-    reg->xout_15to8 = (int8_t)(data[1] >> 0) & 0xFF;
-    reg->yout_7to0 = (int8_t)(data[2] >> 0) & 0xFF;
-    reg->yout_15to8 = (int8_t)(data[3] >> 0) & 0xFF;
-    reg->zout_7to0 = (int8_t)(data[4] >> 0) & 0xFF;
-    reg->zout_15to8 = (int8_t)(data[5] >> 0) & 0xFF;
+    reg->xout = (int16_t)((data[0] & 0xFF) | ((data[1] & 0xFF) << 8));
+    reg->yout = (int16_t)((data[2] & 0xFF) | ((data[3] & 0xFF) << 8));
+    reg->zout = (int16_t)((data[4] & 0xFF) | ((data[5] & 0xFF) << 8));
 
     return err;
 }
@@ -272,10 +281,10 @@ qmc5883l_err_t qmc5883l_get_tout_reg(qmc5883l_t const* qmc5883l, qmc5883l_tout_r
 
     uint8_t data[2] = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_TOUT_LSB, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_TOUT_LSB, data, sizeof(data));
 
-    reg->tout_7to0 = (int8_t)(data[0] >> 0) & 0xFF;
-    reg->tout_15to8 = (int8_t)(data[1] >> 0) & 0xFF;
+    reg->tout = (int16_t)((data[0] & 0xFF) | ((data[1] & 0xFF) << 8));
 
     return err;
 }
@@ -284,64 +293,67 @@ qmc5883l_err_t qmc5883l_get_control_1_reg(qmc5883l_t const* qmc5883l, qmc5883l_c
 {
     assert(qmc5883l && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CONTROL_1, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CONTROL_1, &data, sizeof(data));
 
-    reg->osr = (data[0] >> 6U) & 0x03U;
-    reg->rng = (data[0] >> 4U) & 0x03U;
-    reg->odr = (data[0] >> 2U) & 0x03U;
-    reg->mode = (data[0] >> 0U) & 0x03U;
+    reg->osr = (data >> 6U) & 0x03U;
+    reg->rng = (data >> 4U) & 0x03U;
+    reg->odr = (data >> 2U) & 0x03U;
+    reg->mode = data & 0x03U;
 
     return err;
 }
 
-qmc5883l_err_t qmc5883l_set_control_1_reg(qmc5883l_t const* qmc5883l, qmc5883l_control_1_reg_t const* reg)
+qmc5883l_err_t qmc5883l_set_control_1_reg(qmc5883l_t const* qmc5883l,
+                                          qmc5883l_control_1_reg_t const* reg)
 {
     assert(qmc5883l && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    data[0] |= (reg->osr & 0x03U) << 6U;
-    data[0] |= (reg->rng & 0x03U) << 4U;
-    data[0] |= (reg->odr & 0x03U) << 2U;
-    data[0] |= (reg->mode & 0x03U) << 0U;
+    data |= (reg->osr & 0x03U) << 6U;
+    data |= (reg->rng & 0x03U) << 4U;
+    data |= (reg->odr & 0x03U) << 2U;
+    data |= reg->mode & 0x03U;
 
-    return qmc5883l_bus_write(qmc5883l, QMC5883L_REG_ADDR_CONTROL_1, data, sizeof(data));
+    return qmc5883l_bus_write(qmc5883l, QMC5883L_REG_ADDR_CONTROL_1, &data, sizeof(data));
 }
 
 qmc5883l_err_t qmc5883l_get_control_2_reg(qmc5883l_t const* qmc5883l, qmc5883l_control_2_reg_t* reg)
 {
     assert(qmc5883l && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CONTROL_2, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CONTROL_2, &data, sizeof(data));
 
-    reg->soft_rst = (data[0] >> 7U) & 0x01U;
-    reg->rol_pnt = (data[0] >> 6U) & 0x01U;
-    reg->int_enb = (data[0] >> 0U) & 0x01U;
+    reg->soft_rst = (data >> 7U) & 0x01U;
+    reg->rol_pnt = (data >> 6U) & 0x01U;
+    reg->int_enb = data & 0x01U;
 
     return err;
 }
 
-qmc5883l_err_t qmc5883l_set_control_2_reg(qmc5883l_t const* qmc5883l, qmc5883l_control_2_reg_t const* reg)
+qmc5883l_err_t qmc5883l_set_control_2_reg(qmc5883l_t const* qmc5883l,
+                                          qmc5883l_control_2_reg_t const* reg)
 {
     assert(qmc5883l && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CONTROL_2, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CONTROL_2, &data, sizeof(data));
 
-    data[0] &= ~(0x01U << 7U);
-    data[0] &= ~(0x01U << 6U);
-    data[0] &= ~(0x01U << 0U);
+    data &= ~((0x01U << 7U) | (0x01U << 6U) | 0x01U);
 
-    data[0] |= (reg->soft_rst & 0x01U) << 7U;
-    data[0] |= (reg->rol_pnt & 0x01U) << 6U;
-    data[0] |= (reg->int_enb & 0x01U) << 0U;
+    data |= (reg->soft_rst & 0x01U) << 7U;
+    data |= (reg->rol_pnt & 0x01U) << 6U;
+    data |= reg->int_enb & 0x01U;
 
-    err |= qmc5883l_bus_write(qmc5883l, QMC5883L_REG_ADDR_CONTROL_2, data, sizeof(data));
+    err |= qmc5883l_bus_write(qmc5883l, QMC5883L_REG_ADDR_CONTROL_2, &data, sizeof(data));
 
     return err;
 }
@@ -350,35 +362,38 @@ qmc5883l_err_t qmc5883l_get_sr_period_reg(qmc5883l_t const* qmc5883l, qmc5883l_s
 {
     assert(qmc5883l && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_SR_PERIOD, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_SR_PERIOD, &data, sizeof(data));
 
-    reg->period_fbr = (data[0] >> 0U) & 0xFFU;
+    reg->period_fbr = data & 0xFFU;
 
     return err;
 }
 
-qmc5883l_err_t qmc5883l_set_sr_period_reg(qmc5883l_t const* qmc5883l, qmc5883l_sr_period_reg_t const* reg)
+qmc5883l_err_t qmc5883l_set_sr_period_reg(qmc5883l_t const* qmc5883l,
+                                          qmc5883l_sr_period_reg_t const* reg)
 {
     assert(qmc5883l && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    data[0] |= (reg->period_fbr & 0xFFU) << 0U;
+    data |= reg->period_fbr & 0xFFU;
 
-    return qmc5883l_bus_write(qmc5883l, QMC5883L_REG_ADDR_SR_PERIOD, data, sizeof(data));
+    return qmc5883l_bus_write(qmc5883l, QMC5883L_REG_ADDR_SR_PERIOD, &data, sizeof(data));
 }
 
 qmc5883l_err_t qmc5883l_get_chip_id_reg(qmc5883l_t const* qmc5883l, qmc5883l_chip_id_reg_t* reg)
 {
     assert(qmc5883l && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    qmc5883l_err_t err = qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CHIP_ID, data, sizeof(data));
+    qmc5883l_err_t err =
+        qmc5883l_bus_read(qmc5883l, QMC5883L_REG_ADDR_CHIP_ID, &data, sizeof(data));
 
-    reg->chip_id = (data[0] >> 0U) & 0xFFU;
+    reg->chip_id = data & 0xFFU;
 
     return err;
 }
